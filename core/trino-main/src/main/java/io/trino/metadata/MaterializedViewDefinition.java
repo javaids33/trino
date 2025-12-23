@@ -33,6 +33,7 @@ public class MaterializedViewDefinition
 {
     private final Optional<Duration> gracePeriod;
     private final Optional<WhenStaleBehavior> whenStaleBehavior;
+    private final Optional<String> refreshSchedule;
     private final Optional<CatalogSchemaTableName> storageTable;
 
     public MaterializedViewDefinition(
@@ -47,10 +48,27 @@ public class MaterializedViewDefinition
             List<CatalogSchemaName> path,
             Optional<CatalogSchemaTableName> storageTable)
     {
+        this(originalSql, catalog, schema, columns, gracePeriod, whenStaleBehavior, Optional.empty(), comment, owner, path, storageTable);
+    }
+
+    public MaterializedViewDefinition(
+            String originalSql,
+            Optional<String> catalog,
+            Optional<String> schema,
+            List<ViewColumn> columns,
+            Optional<Duration> gracePeriod,
+            Optional<WhenStaleBehavior> whenStaleBehavior,
+            Optional<String> refreshSchedule,
+            Optional<String> comment,
+            Identity owner,
+            List<CatalogSchemaName> path,
+            Optional<CatalogSchemaTableName> storageTable)
+    {
         super(originalSql, catalog, schema, columns, comment, Optional.of(owner), path);
         this.gracePeriod = requireNonNull(gracePeriod, "gracePeriod is null");
         checkArgument(gracePeriod.isEmpty() || !gracePeriod.get().isNegative(), "gracePeriod cannot be negative: %s", gracePeriod);
         this.whenStaleBehavior = requireNonNull(whenStaleBehavior, "whenStaleBehavior is null");
+        this.refreshSchedule = requireNonNull(refreshSchedule, "refreshSchedule is null");
         this.storageTable = requireNonNull(storageTable, "storageTable is null");
     }
 
@@ -62,6 +80,11 @@ public class MaterializedViewDefinition
     public Optional<WhenStaleBehavior> getWhenStaleBehavior()
     {
         return whenStaleBehavior;
+    }
+
+    public Optional<String> getRefreshSchedule()
+    {
+        return refreshSchedule;
     }
 
     public Optional<CatalogSchemaTableName> getStorageTable()
@@ -81,6 +104,7 @@ public class MaterializedViewDefinition
                         .collect(toImmutableList()),
                 getGracePeriod(),
                 whenStaleBehavior,
+                refreshSchedule,
                 getComment(),
                 getRunAsIdentity().map(Identity::getUser),
                 getPath());
@@ -96,6 +120,7 @@ public class MaterializedViewDefinition
                 .add("columns", getColumns())
                 .add("gracePeriod", gracePeriod.orElse(null))
                 .add("whenStaleBehavior", whenStaleBehavior.orElse(null))
+                .add("refreshSchedule", refreshSchedule.orElse(null))
                 .add("comment", getComment().orElse(null))
                 .add("runAsIdentity", getRunAsIdentity())
                 .add("path", getPath())

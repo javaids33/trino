@@ -37,6 +37,7 @@ public class CreateMaterializedView
     private final boolean notExists;
     private final Optional<IntervalLiteral> gracePeriod;
     private final Optional<WhenStaleBehavior> whenStaleBehavior;
+    private final Optional<String> refreshSchedule;
     private final List<Property> properties;
     private final Optional<String> comment;
 
@@ -51,6 +52,21 @@ public class CreateMaterializedView
             List<Property> properties,
             Optional<String> comment)
     {
+        this(location, name, query, replace, notExists, gracePeriod, whenStaleBehavior, Optional.empty(), properties, comment);
+    }
+
+    public CreateMaterializedView(
+            NodeLocation location,
+            QualifiedName name,
+            Query query,
+            boolean replace,
+            boolean notExists,
+            Optional<IntervalLiteral> gracePeriod,
+            Optional<WhenStaleBehavior> whenStaleBehavior,
+            Optional<String> refreshSchedule,
+            List<Property> properties,
+            Optional<String> comment)
+    {
         super(location);
         this.name = requireNonNull(name, "name is null");
         this.query = requireNonNull(query, "query is null");
@@ -58,6 +74,7 @@ public class CreateMaterializedView
         this.notExists = notExists;
         this.gracePeriod = requireNonNull(gracePeriod, "gracePeriod is null");
         this.whenStaleBehavior = requireNonNull(whenStaleBehavior, "whenStaleBehavior is null");
+        this.refreshSchedule = requireNonNull(refreshSchedule, "refreshSchedule is null");
         this.properties = ImmutableList.copyOf(requireNonNull(properties, "properties is null"));
         this.comment = requireNonNull(comment, "comment is null");
     }
@@ -92,6 +109,11 @@ public class CreateMaterializedView
         return whenStaleBehavior;
     }
 
+    public Optional<String> getRefreshSchedule()
+    {
+        return refreshSchedule;
+    }
+
     public List<Property> getProperties()
     {
         return properties;
@@ -120,7 +142,7 @@ public class CreateMaterializedView
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, query, replace, notExists, gracePeriod, whenStaleBehavior, properties, comment);
+        return Objects.hash(name, query, replace, notExists, gracePeriod, whenStaleBehavior, refreshSchedule, properties, comment);
     }
 
     @Override
@@ -139,6 +161,7 @@ public class CreateMaterializedView
                 && notExists == o.notExists
                 && Objects.equals(gracePeriod, o.gracePeriod)
                 && Objects.equals(whenStaleBehavior, o.whenStaleBehavior)
+                && Objects.equals(refreshSchedule, o.refreshSchedule)
                 && Objects.equals(properties, o.properties)
                 && Objects.equals(comment, o.comment);
     }
@@ -153,6 +176,7 @@ public class CreateMaterializedView
                 .add("notExists", notExists)
                 .add("gracePeriod", gracePeriod)
                 .add("whenStaleBehavior", whenStaleBehavior)
+                .add("refreshSchedule", refreshSchedule)
                 .add("properties", properties)
                 .add("comment", comment)
                 .toString();

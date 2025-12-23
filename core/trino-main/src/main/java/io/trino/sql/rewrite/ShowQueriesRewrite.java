@@ -565,6 +565,7 @@ public final class ShowQueriesRewrite
                     viewDefinition.get().getGracePeriod()
                             .map(DateTimeUtils::formatDayTimeInterval),
                     Optional.empty(), // TODO support WHEN STALE
+                    viewDefinition.get().getRefreshSchedule(),
                     propertyNodes,
                     viewDefinition.get().getComment())).trim();
             return singleValueQuery("Create Materialized View", sql);

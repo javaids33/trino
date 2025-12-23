@@ -1264,6 +1264,9 @@ public final class SqlFormatter
                     builder.append("\nGRACE PERIOD ").append(formatExpression(interval)));
             node.getWhenStaleBehavior().ifPresent(whenStale ->
                     builder.append("\nWHEN STALE ").append(whenStale.name()));
+            node.getRefreshSchedule().ifPresent(schedule -> builder
+                    .append("\nREFRESH SCHEDULE ")
+                    .append(formatStringLiteral(schedule)));
             node.getComment().ifPresent(comment -> builder
                     .append("\nCOMMENT ")
                     .append(formatStringLiteral(comment)));
