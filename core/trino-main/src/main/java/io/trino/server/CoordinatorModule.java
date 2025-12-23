@@ -69,6 +69,9 @@ import io.trino.execution.resourcegroups.InternalResourceGroupManager;
 import io.trino.execution.resourcegroups.LegacyResourceGroupConfigurationManager;
 import io.trino.execution.resourcegroups.ResourceGroupInfoProvider;
 import io.trino.execution.resourcegroups.ResourceGroupManager;
+import io.trino.execution.scheduler.InitializeMaterializedViewScheduler;
+import io.trino.execution.scheduler.MaterializedViewSchedulerConfig;
+import io.trino.execution.scheduler.MaterializedViewSchedulerService;
 import io.trino.execution.scheduler.NodeScheduler;
 import io.trino.execution.scheduler.NodeSchedulerConfig;
 import io.trino.execution.scheduler.SplitSchedulerStats;
@@ -312,6 +315,11 @@ public class CoordinatorModule
 
         // dynamic filtering service
         binder.bind(DynamicFilterService.class).in(Scopes.SINGLETON);
+
+        // materialized view scheduler service
+        configBinder(binder).bindConfig(MaterializedViewSchedulerConfig.class);
+        binder.bind(MaterializedViewSchedulerService.class).in(Scopes.SINGLETON);
+        binder.bind(InitializeMaterializedViewScheduler.class).asEagerSingleton();
 
         // language functions
         binder.bind(LanguageFunctionManager.class).in(Scopes.SINGLETON);

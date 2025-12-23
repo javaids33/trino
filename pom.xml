@@ -189,6 +189,7 @@
         <dep.aws-sdk.version>1.12.796</dep.aws-sdk.version>
         <dep.cassandra.version>4.17.0</dep.cassandra.version>
         <dep.confluent.version>7.8.0</dep.confluent.version>
+        <dep.cron-utils.version>9.2.1</dep.cron-utils.version>
         <dep.docker.images.version>119</dep.docker.images.version>
         <dep.drift.version>1.24</dep.drift.version>
         <dep.flyway.version>11.19.0</dep.flyway.version>
@@ -378,6 +379,12 @@
                 <artifactId>clickhouse-jdbc</artifactId>
                 <version>0.7.1-patch1</version>
                 <classifier>all</classifier>
+            </dependency>
+
+            <dependency>
+                <groupId>com.cronutils</groupId>
+                <artifactId>cron-utils</artifactId>
+                <version>${dep.cron-utils.version}</version>
             </dependency>
 
             <dependency>
