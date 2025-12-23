@@ -6197,6 +6197,43 @@ public class TestSqlParser
                                         new NodeLocation(2, 24),
                                         ImmutableList.of(new StringLiteral(new NodeLocation(2, 31), "dateint"))))),
                         Optional.of("A partitioned materialized view")));
+
+        // WITH REFRESH SCHEDULE
+        assertThat(statement("CREATE MATERIALIZED VIEW a REFRESH SCHEDULE '*/15 * * * *' AS SELECT * FROM t"))
+                .isEqualTo(new CreateMaterializedView(
+                        new NodeLocation(1, 1),
+                        QualifiedName.of(ImmutableList.of(new Identifier(new NodeLocation(1, 26), "a", false))),
+                        new Query(
+                                new NodeLocation(1, 63),
+                                ImmutableList.of(),
+                                ImmutableList.of(),
+                                Optional.empty(),
+                                new QuerySpecification(
+                                        new NodeLocation(1, 63),
+                                        new Select(
+                                                new NodeLocation(1, 63),
+                                                false,
+                                                ImmutableList.of(new AllColumns(new NodeLocation(1, 70), Optional.empty(), ImmutableList.of()))),
+                                        Optional.of(new Table(
+                                                new NodeLocation(1, 77),
+                                                QualifiedName.of(ImmutableList.of(new Identifier(new NodeLocation(1, 77), "t", false))))),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        ImmutableList.of(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty()),
+                                Optional.empty(),
+                                Optional.empty(),
+                                Optional.empty()),
+                        false,
+                        false,
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of("*/15 * * * *"),
+                        ImmutableList.of(),
+                        Optional.empty()));
     }
 
     @Test
