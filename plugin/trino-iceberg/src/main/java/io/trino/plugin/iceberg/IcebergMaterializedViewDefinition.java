@@ -43,6 +43,7 @@ public record IcebergMaterializedViewDefinition(
         Optional<String> schema,
         List<Column> columns,
         Optional<Duration> gracePeriod,
+        Optional<String> refreshSchedule,
         Optional<String> comment,
         List<CatalogSchemaName> path)
 {
@@ -79,6 +80,7 @@ public record IcebergMaterializedViewDefinition(
                         .map(column -> new Column(column.getName(), column.getType(), column.getComment()))
                         .collect(toImmutableList()),
                 definition.getGracePeriod(),
+                definition.getRefreshSchedule(),
                 definition.getComment(),
                 definition.getPath());
     }
@@ -90,6 +92,7 @@ public record IcebergMaterializedViewDefinition(
         requireNonNull(schema, "schema is null");
         columns = List.copyOf(requireNonNull(columns, "columns is null"));
         checkArgument(gracePeriod.isEmpty() || !gracePeriod.get().isNegative(), "gracePeriod cannot be negative: %s", gracePeriod);
+        requireNonNull(refreshSchedule, "refreshSchedule is null");
         requireNonNull(comment, "comment is null");
         path = path == null ? ImmutableList.of() : ImmutableList.copyOf(path);
 
@@ -110,6 +113,7 @@ public record IcebergMaterializedViewDefinition(
         schema.ifPresent(value -> joiner.add("schema=" + value));
         joiner.add("columns=" + columns);
         gracePeriod.ifPresent(value -> joiner.add("gracePeriod≥=" + value));
+        refreshSchedule.ifPresent(value -> joiner.add("refreshSchedule=" + value));
         comment.ifPresent(value -> joiner.add("comment=" + value));
         joiner.add(path.stream().map(CatalogSchemaName::toString).collect(Collectors.joining(", ", "path=(", ")")));
         return getClass().getSimpleName() + joiner;

@@ -622,9 +622,15 @@ class AstBuilder
             whenStale = Optional.of(WhenStaleBehavior.FAIL);
         }
 
+        Optional<String> refreshSchedule = Optional.empty();
+        if (context.REFRESH() != null && context.SCHEDULE() != null) {
+            refreshSchedule = Optional.of(visitString(context.string(0)).getValue());
+        }
+
         Optional<String> comment = Optional.empty();
         if (context.COMMENT() != null) {
-            comment = Optional.of(visitString(context.string()).getValue());
+            int commentStringIndex = refreshSchedule.isPresent() ? 1 : 0;
+            comment = Optional.of(visitString(context.string(commentStringIndex)).getValue());
         }
 
         List<Property> properties = ImmutableList.of();
@@ -640,6 +646,7 @@ class AstBuilder
                 context.EXISTS() != null,
                 gracePeriod,
                 whenStale,
+                refreshSchedule,
                 properties,
                 comment);
     }

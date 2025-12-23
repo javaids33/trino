@@ -166,6 +166,8 @@ public class CreateMaterializedViewTask
                     throw semanticException(NOT_SUPPORTED, statement, "WHEN STALE is not supported yet");
                 });
 
+        Optional<String> refreshSchedule = statement.getRefreshSchedule();
+
         MaterializedViewDefinition definition = new MaterializedViewDefinition(
                 sql,
                 session.getCatalog(),
@@ -173,6 +175,7 @@ public class CreateMaterializedViewTask
                 columns,
                 gracePeriod,
                 whenStale,
+                refreshSchedule,
                 statement.getComment(),
                 session.getIdentity(),
                 session.getPath().getPath().stream()

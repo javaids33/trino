@@ -40,6 +40,7 @@ public class ConnectorMaterializedViewDefinition
     private final List<Column> columns;
     private final Optional<Duration> gracePeriod;
     private final Optional<WhenStaleBehavior> whenStaleBehavior;
+    private final Optional<String> refreshSchedule;
     private final Optional<String> comment;
     private final Optional<String> owner;
     private final List<CatalogSchemaName> path;
@@ -56,6 +57,22 @@ public class ConnectorMaterializedViewDefinition
             Optional<String> owner,
             List<CatalogSchemaName> path)
     {
+        this(originalSql, storageTable, catalog, schema, columns, gracePeriod, whenStaleBehavior, Optional.empty(), comment, owner, path);
+    }
+
+    public ConnectorMaterializedViewDefinition(
+            String originalSql,
+            Optional<CatalogSchemaTableName> storageTable,
+            Optional<String> catalog,
+            Optional<String> schema,
+            List<Column> columns,
+            Optional<Duration> gracePeriod,
+            Optional<WhenStaleBehavior> whenStaleBehavior,
+            Optional<String> refreshSchedule,
+            Optional<String> comment,
+            Optional<String> owner,
+            List<CatalogSchemaName> path)
+    {
         this.originalSql = requireNonNull(originalSql, "originalSql is null");
         this.storageTable = requireNonNull(storageTable, "storageTable is null");
         this.catalog = requireNonNull(catalog, "catalog is null");
@@ -64,6 +81,7 @@ public class ConnectorMaterializedViewDefinition
         checkArgument(gracePeriod.isEmpty() || !gracePeriod.get().isNegative(), "gracePeriod cannot be negative: %s", gracePeriod);
         this.gracePeriod = gracePeriod;
         this.whenStaleBehavior = requireNonNull(whenStaleBehavior, "whenStaleBehavior is null");
+        this.refreshSchedule = requireNonNull(refreshSchedule, "refreshSchedule is null");
         this.comment = requireNonNull(comment, "comment is null");
         this.owner = requireNonNull(owner, "owner is null");
         this.path = List.copyOf(path);
@@ -111,6 +129,11 @@ public class ConnectorMaterializedViewDefinition
         return whenStaleBehavior;
     }
 
+    public Optional<String> getRefreshSchedule()
+    {
+        return refreshSchedule;
+    }
+
     public Optional<String> getComment()
     {
         return comment;
@@ -137,6 +160,7 @@ public class ConnectorMaterializedViewDefinition
         joiner.add("columns=" + columns);
         gracePeriod.ifPresent(value -> joiner.add("gracePeriod=" + gracePeriod));
         whenStaleBehavior.ifPresent(value -> joiner.add("whenStaleBehavior=" + value.name()));
+        refreshSchedule.ifPresent(value -> joiner.add("refreshSchedule=" + value));
         comment.ifPresent(value -> joiner.add("comment=" + value));
         joiner.add("owner=" + owner);
         joiner.add(path.stream().map(CatalogSchemaName::toString).collect(joining(", ", "path=(", ")")));
@@ -160,6 +184,7 @@ public class ConnectorMaterializedViewDefinition
                 Objects.equals(columns, that.columns) &&
                 Objects.equals(gracePeriod, that.gracePeriod) &&
                 Objects.equals(whenStaleBehavior, that.whenStaleBehavior) &&
+                Objects.equals(refreshSchedule, that.refreshSchedule) &&
                 Objects.equals(comment, that.comment) &&
                 Objects.equals(owner, that.owner) &&
                 Objects.equals(path, that.path);
@@ -168,7 +193,7 @@ public class ConnectorMaterializedViewDefinition
     @Override
     public int hashCode()
     {
-        return Objects.hash(originalSql, storageTable, catalog, schema, columns, gracePeriod, whenStaleBehavior, comment, owner, path);
+        return Objects.hash(originalSql, storageTable, catalog, schema, columns, gracePeriod, whenStaleBehavior, refreshSchedule, comment, owner, path);
     }
 
     public static final class Column
