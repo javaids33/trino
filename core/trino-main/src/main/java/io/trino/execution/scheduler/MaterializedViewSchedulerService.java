@@ -131,9 +131,12 @@ public class MaterializedViewSchedulerService
             // Get the last execution time for this view
             ZonedDateTime lastExecution = lastExecutionTimes.get(viewQualifiedName);
 
-            // If never executed, check if we should execute now
+            // If never executed, check against a reference time far in the past
+            // to find the most recent execution time that should have occurred
             if (lastExecution == null) {
-                return executionTime.nextExecution(now.minusYears(1))
+                // Use epoch as a clear reference point for first-time checks
+                ZonedDateTime epoch = ZonedDateTime.ofInstant(java.time.Instant.EPOCH, now.getZone());
+                return executionTime.nextExecution(epoch)
                         .map(next -> !next.isAfter(now))
                         .orElse(false);
             }
