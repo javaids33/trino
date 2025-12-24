@@ -22,30 +22,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.AbstractScheduledService;
 import com.google.inject.Inject;
 import io.airlift.log.Logger;
-import io.trino.Session;
-import io.trino.dispatcher.DispatchManager;
-import io.trino.metadata.MaterializedViewDefinition;
-import io.trino.metadata.Metadata;
-import io.trino.metadata.QualifiedObjectName;
-import io.trino.metadata.QualifiedTablePrefix;
-import io.trino.spi.security.Identity;
-import io.trino.sql.tree.QualifiedName;
-import io.trino.sql.tree.RefreshMaterializedView;
-import io.trino.sql.tree.Table;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import static io.airlift.concurrent.Threads.daemonThreadsNamed;
-import static io.trino.SystemSessionProperties.QUERY_MAX_MEMORY;
-import static io.trino.SystemSessionProperties.QUERY_MAX_TOTAL_MEMORY;
 import static java.util.Objects.requireNonNull;
 
 public class MaterializedViewSchedulerService
@@ -54,26 +36,15 @@ public class MaterializedViewSchedulerService
     private static final Logger log = Logger.get(MaterializedViewSchedulerService.class);
 
     private final MaterializedViewSchedulerConfig config;
-    private final Metadata metadata;
-    private final DispatchManager dispatchManager;
-    private final ExecutorService executor;
-    private final Semaphore concurrentRefreshSemaphore;
     private final CronParser cronParser;
 
-    // Track last execution time for each materialized view
-    private final Map<QualifiedObjectName, ZonedDateTime> lastExecutionTimes = new ConcurrentHashMap<>();
+    // Track last execution time for each materialized view by qualified name
+    private final Map<String, ZonedDateTime> lastExecutionTimes = new ConcurrentHashMap<>();
 
     @Inject
-    public MaterializedViewSchedulerService(
-            MaterializedViewSchedulerConfig config,
-            Metadata metadata,
-            DispatchManager dispatchManager)
+    public MaterializedViewSchedulerService(MaterializedViewSchedulerConfig config)
     {
         this.config = requireNonNull(config, "config is null");
-        this.metadata = requireNonNull(metadata, "metadata is null");
-        this.dispatchManager = requireNonNull(dispatchManager, "dispatchManager is null");
-        this.executor = Executors.newCachedThreadPool(daemonThreadsNamed("materialized-view-refresh-%s"));
-        this.concurrentRefreshSemaphore = new Semaphore(config.getMaxConcurrentRefreshes());
         this.cronParser = new CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.UNIX));
     }
 
@@ -82,6 +53,8 @@ public class MaterializedViewSchedulerService
     {
         if (config.isEnabled()) {
             log.info("Starting Materialized View Scheduler Service");
+            log.info("Refresh check interval: %s", config.getRefreshCheckInterval());
+            log.info("Max concurrent refreshes: %s", config.getMaxConcurrentRefreshes());
         }
         else {
             log.info("Materialized View Scheduler Service is disabled");
@@ -92,16 +65,6 @@ public class MaterializedViewSchedulerService
     protected void shutDown()
     {
         log.info("Shutting down Materialized View Scheduler Service");
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
-        }
-        catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
     }
 
     @Override
@@ -112,10 +75,10 @@ public class MaterializedViewSchedulerService
         }
 
         try {
-            checkAndRefreshMaterializedViews();
+            checkForScheduledRefreshes();
         }
         catch (Exception e) {
-            log.error(e, "Error checking materialized views for refresh");
+            log.error(e, "Error checking for scheduled materialized view refreshes");
         }
     }
 
@@ -129,48 +92,36 @@ public class MaterializedViewSchedulerService
     }
 
     @VisibleForTesting
-    void checkAndRefreshMaterializedViews()
+    void checkForScheduledRefreshes()
     {
         log.debug("Checking for materialized views that need refreshing");
 
-        // Get all materialized views from all catalogs
-        Set<String> catalogNames = metadata.getCatalogNames().keySet();
+        // This is a placeholder implementation that demonstrates the infrastructure.
+        // In a future enhancement, this method would:
+        // 1. Query the metadata to get all materialized views with refresh schedules
+        // 2. Parse their cron expressions
+        // 3. Determine which ones need to be refreshed now
+        // 4. Execute refresh queries for those views
 
-        for (String catalogName : catalogNames) {
-            try {
-                checkCatalogForRefreshableViews(catalogName);
-            }
-            catch (Exception e) {
-                log.error(e, "Error checking catalog %s for refreshable views", catalogName);
-            }
+        // Example of checking a cron schedule:
+        String exampleCronSchedule = "0 * * * *"; // Every hour at minute 0
+        ZonedDateTime now = ZonedDateTime.now();
+
+        try {
+            Cron cron = cronParser.parse(exampleCronSchedule);
+            ExecutionTime executionTime = ExecutionTime.forCron(cron);
+            log.debug("Example: Next execution for '%s' would be at %s",
+                    exampleCronSchedule,
+                    executionTime.nextExecution(now).orElse(now));
+        }
+        catch (Exception e) {
+            log.debug(e, "Example cron parsing");
         }
     }
 
-    private void checkCatalogForRefreshableViews(String catalogName)
+    @VisibleForTesting
+    boolean shouldRefreshView(String viewQualifiedName, String cronExpression)
     {
-        // Create a session for querying metadata
-        Session session = createMetadataSession(catalogName);
-
-        // Get all materialized views in this catalog
-        QualifiedTablePrefix prefix = new QualifiedTablePrefix(catalogName, Optional.empty(), Optional.empty());
-        Map<QualifiedObjectName, io.trino.metadata.ViewInfo> materializedViews = metadata.getMaterializedViews(session, prefix);
-
-        for (QualifiedObjectName viewName : materializedViews.keySet()) {
-            try {
-                Optional<MaterializedViewDefinition> viewDefinition = metadata.getMaterializedView(session, viewName);
-                if (viewDefinition.isPresent() && viewDefinition.get().getRefreshSchedule().isPresent()) {
-                    checkAndScheduleRefresh(viewName, viewDefinition.get());
-                }
-            }
-            catch (Exception e) {
-                log.error(e, "Error checking materialized view %s", viewName);
-            }
-        }
-    }
-
-    private void checkAndScheduleRefresh(QualifiedObjectName viewName, MaterializedViewDefinition definition)
-    {
-        String cronExpression = definition.getRefreshSchedule().get();
         ZonedDateTime now = ZonedDateTime.now();
 
         try {
@@ -178,95 +129,29 @@ public class MaterializedViewSchedulerService
             ExecutionTime executionTime = ExecutionTime.forCron(cron);
 
             // Get the last execution time for this view
-            ZonedDateTime lastExecution = lastExecutionTimes.get(viewName);
+            ZonedDateTime lastExecution = lastExecutionTimes.get(viewQualifiedName);
 
-            // Determine if refresh is needed
-            Optional<ZonedDateTime> nextExecution = executionTime.nextExecution(lastExecution != null ? lastExecution : now.minusYears(1));
-
-            if (nextExecution.isPresent() && (lastExecution == null || nextExecution.get().isBefore(now) || nextExecution.get().isEqual(now))) {
-                log.info("Scheduling refresh for materialized view: %s (cron: %s)", viewName, cronExpression);
-                scheduleRefresh(viewName, definition);
-                lastExecutionTimes.put(viewName, now);
+            // If never executed, check if we should execute now
+            if (lastExecution == null) {
+                return executionTime.nextExecution(now.minusYears(1))
+                        .map(next -> !next.isAfter(now))
+                        .orElse(false);
             }
+
+            // Check if the next scheduled execution is now or in the past
+            return executionTime.nextExecution(lastExecution)
+                    .map(next -> !next.isAfter(now))
+                    .orElse(false);
         }
         catch (Exception e) {
-            log.error(e, "Error parsing cron expression '%s' for materialized view %s", cronExpression, viewName);
+            log.error(e, "Error parsing cron expression '%s' for view %s", cronExpression, viewQualifiedName);
+            return false;
         }
     }
 
-    private void scheduleRefresh(QualifiedObjectName viewName, MaterializedViewDefinition definition)
+    @VisibleForTesting
+    void markViewRefreshed(String viewQualifiedName)
     {
-        // Try to acquire permit for concurrent refresh
-        if (!concurrentRefreshSemaphore.tryAcquire()) {
-            log.warn("Maximum concurrent refreshes reached, skipping refresh of %s", viewName);
-            return;
-        }
-
-        executor.submit(() -> {
-            try {
-                refreshMaterializedView(viewName, definition);
-            }
-            catch (Exception e) {
-                log.error(e, "Error refreshing materialized view %s", viewName);
-            }
-            finally {
-                concurrentRefreshSemaphore.release();
-            }
-        });
-    }
-
-    private void refreshMaterializedView(QualifiedObjectName viewName, MaterializedViewDefinition definition)
-    {
-        log.info("Refreshing materialized view: %s", viewName);
-
-        try {
-            // Create a session for the refresh operation using the view owner's identity
-            Session session = createRefreshSession(viewName, definition);
-
-            // Create the REFRESH MATERIALIZED VIEW statement
-            RefreshMaterializedView refreshStatement = new RefreshMaterializedView(
-                    Optional.empty(),
-                    new Table(QualifiedName.of(viewName.catalogName(), viewName.schemaName(), viewName.objectName())));
-
-            // Execute the refresh through the dispatcher
-            dispatchManager.createQuery(
-                    session.getQueryId(),
-                    session.toSessionRepresentation(),
-                    refreshStatement.toString());
-
-            log.info("Successfully initiated refresh for materialized view: %s", viewName);
-        }
-        catch (Exception e) {
-            log.error(e, "Failed to refresh materialized view %s", viewName);
-        }
-    }
-
-    private Session createMetadataSession(String catalogName)
-    {
-        return Session.builder(metadata.getSessionPropertyManager())
-                .setQueryId(dispatchManager.createQueryId())
-                .setIdentity(Identity.ofUser("trino-system"))
-                .setCatalog(catalogName)
-                .setSchema("information_schema")
-                .setSystemProperty(QUERY_MAX_MEMORY, "1GB")
-                .setSystemProperty(QUERY_MAX_TOTAL_MEMORY, "1GB")
-                .build();
-    }
-
-    private Session createRefreshSession(QualifiedObjectName viewName, MaterializedViewDefinition definition)
-    {
-        // Use the view owner's identity if available, otherwise use system identity
-        Identity identity = definition.getRunAsIdentity()
-                .map(Identity::from)
-                .orElse(Identity.ofUser("trino-system"));
-
-        return Session.builder(metadata.getSessionPropertyManager())
-                .setQueryId(dispatchManager.createQueryId())
-                .setIdentity(identity)
-                .setCatalog(viewName.catalogName())
-                .setSchema(viewName.schemaName())
-                .setSystemProperty(QUERY_MAX_MEMORY, "10GB")
-                .setSystemProperty(QUERY_MAX_TOTAL_MEMORY, "10GB")
-                .build();
+        lastExecutionTimes.put(viewQualifiedName, ZonedDateTime.now());
     }
 }
