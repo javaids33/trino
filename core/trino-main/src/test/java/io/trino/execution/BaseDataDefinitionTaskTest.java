@@ -205,6 +205,7 @@ public abstract class BaseDataDefinitionTaskTest
                 Optional.empty(),
                 columns,
                 Optional.empty(),
+                Optional.empty(),
                 INLINE,
                 Optional.empty(),
                 Identity.ofUser("owner"),
@@ -593,6 +594,7 @@ public abstract class BaseDataDefinitionTaskTest
                                     .map(currentViewColumn -> columnName.equals(currentViewColumn.name()) ? new ViewColumn(currentViewColumn.name(), currentViewColumn.type(), comment) : currentViewColumn)
                                     .collect(toImmutableList()),
                             view.getGracePeriod(),
+                            view.getRefreshSchedule(),
                             view.getWhenStaleBehavior(),
                             view.getComment(),
                             view.getRunAsIdentity().get(),
