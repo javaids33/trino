@@ -104,6 +104,7 @@ public class TestTrinoGlueCatalog
                 new GlueMetastoreStats(),
                 useSystemSecurity,
                 Optional.empty(),
+                Optional.empty(),
                 useUniqueTableLocations,
                 new IcebergConfig().isHideMaterializedViewStorageTable(),
                 directExecutor());
@@ -146,6 +147,7 @@ public class TestTrinoGlueCatalog
                     TABLE_STATISTICS_READER,
                     new TableStatisticsWriter(new NodeVersion("test-version")),
                     Optional.empty(),
+                Optional.empty(),
                     false,
                     _ -> false,
                     newDirectExecutorService(),
@@ -184,6 +186,7 @@ public class TestTrinoGlueCatalog
                             Optional.of("catalog_name"),
                             Optional.of("schema_name"),
                             ImmutableList.of(new ConnectorMaterializedViewDefinition.Column("col1", INTEGER.getTypeId(), Optional.empty())),
+                            Optional.empty(),
                             Optional.empty(),
                             Optional.empty(),
                             Optional.empty(),
