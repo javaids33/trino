@@ -35,6 +35,7 @@ public class MaterializedViewDefinition
     public static final WhenStaleBehavior DEFAULT_WHEN_STALE_BEHAVIOR = INLINE;
 
     private final Optional<Duration> gracePeriod;
+    private final Optional<String> refreshSchedule;
     private final WhenStaleBehavior whenStaleBehavior;
     private final Optional<CatalogSchemaTableName> storageTable;
 
@@ -44,6 +45,7 @@ public class MaterializedViewDefinition
             Optional<String> schema,
             List<ViewColumn> columns,
             Optional<Duration> gracePeriod,
+            Optional<String> refreshSchedule,
             WhenStaleBehavior whenStaleBehavior,
             Optional<String> comment,
             Identity owner,
@@ -53,6 +55,7 @@ public class MaterializedViewDefinition
         super(originalSql, catalog, schema, columns, comment, Optional.of(owner), path);
         this.gracePeriod = requireNonNull(gracePeriod, "gracePeriod is null");
         checkArgument(gracePeriod.isEmpty() || !gracePeriod.get().isNegative(), "gracePeriod cannot be negative: %s", gracePeriod);
+        this.refreshSchedule = requireNonNull(refreshSchedule, "refreshSchedule is null");
         this.whenStaleBehavior = requireNonNull(whenStaleBehavior, "whenStaleBehavior is null");
         this.storageTable = requireNonNull(storageTable, "storageTable is null");
     }
@@ -60,6 +63,11 @@ public class MaterializedViewDefinition
     public Optional<Duration> getGracePeriod()
     {
         return gracePeriod;
+    }
+
+    public Optional<String> getRefreshSchedule()
+    {
+        return refreshSchedule;
     }
 
     public WhenStaleBehavior getWhenStaleBehavior()
@@ -83,6 +91,7 @@ public class MaterializedViewDefinition
                         .map(column -> new ConnectorMaterializedViewDefinition.Column(column.name(), column.type(), column.comment()))
                         .collect(toImmutableList()),
                 getGracePeriod(),
+                getRefreshSchedule(),
                 Optional.of(whenStaleBehavior),
                 getComment(),
                 getRunAsIdentity().map(Identity::getUser),
@@ -98,6 +107,7 @@ public class MaterializedViewDefinition
                 .add("schema", getSchema().orElse(null))
                 .add("columns", getColumns())
                 .add("gracePeriod", gracePeriod.orElse(null))
+                .add("refreshSchedule", refreshSchedule.orElse(null))
                 .add("whenStaleBehavior", whenStaleBehavior)
                 .add("comment", getComment().orElse(null))
                 .add("runAsIdentity", getRunAsIdentity())

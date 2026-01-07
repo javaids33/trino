@@ -170,6 +170,7 @@ public class CreateMaterializedViewTask
                 session.getSchema(),
                 columns,
                 gracePeriod,
+                statement.getRefreshSchedule(),
                 whenStale,
                 statement.getComment(),
                 session.getIdentity(),

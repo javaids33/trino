@@ -36,6 +36,7 @@ public class CreateMaterializedView
     private final boolean replace;
     private final boolean notExists;
     private final Optional<IntervalLiteral> gracePeriod;
+    private final Optional<String> refreshSchedule;
     private final Optional<WhenStaleBehavior> whenStaleBehavior;
     private final List<Property> properties;
     private final Optional<String> comment;
@@ -47,6 +48,7 @@ public class CreateMaterializedView
             boolean replace,
             boolean notExists,
             Optional<IntervalLiteral> gracePeriod,
+            Optional<String> refreshSchedule,
             Optional<WhenStaleBehavior> whenStaleBehavior,
             List<Property> properties,
             Optional<String> comment)
@@ -57,6 +59,7 @@ public class CreateMaterializedView
         this.replace = replace;
         this.notExists = notExists;
         this.gracePeriod = requireNonNull(gracePeriod, "gracePeriod is null");
+        this.refreshSchedule = requireNonNull(refreshSchedule, "refreshSchedule is null");
         this.whenStaleBehavior = requireNonNull(whenStaleBehavior, "whenStaleBehavior is null");
         this.properties = ImmutableList.copyOf(requireNonNull(properties, "properties is null"));
         this.comment = requireNonNull(comment, "comment is null");
@@ -85,6 +88,11 @@ public class CreateMaterializedView
     public Optional<IntervalLiteral> getGracePeriod()
     {
         return gracePeriod;
+    }
+
+    public Optional<String> getRefreshSchedule()
+    {
+        return refreshSchedule;
     }
 
     public Optional<WhenStaleBehavior> getWhenStaleBehavior()
@@ -120,7 +128,7 @@ public class CreateMaterializedView
     @Override
     public int hashCode()
     {
-        return Objects.hash(name, query, replace, notExists, gracePeriod, whenStaleBehavior, properties, comment);
+        return Objects.hash(name, query, replace, notExists, gracePeriod, refreshSchedule, whenStaleBehavior, properties, comment);
     }
 
     @Override
@@ -138,6 +146,7 @@ public class CreateMaterializedView
                 && replace == o.replace
                 && notExists == o.notExists
                 && Objects.equals(gracePeriod, o.gracePeriod)
+                && Objects.equals(refreshSchedule, o.refreshSchedule)
                 && Objects.equals(whenStaleBehavior, o.whenStaleBehavior)
                 && Objects.equals(properties, o.properties)
                 && Objects.equals(comment, o.comment);
@@ -152,6 +161,7 @@ public class CreateMaterializedView
                 .add("replace", replace)
                 .add("notExists", notExists)
                 .add("gracePeriod", gracePeriod)
+                .add("refreshSchedule", refreshSchedule)
                 .add("whenStaleBehavior", whenStaleBehavior)
                 .add("properties", properties)
                 .add("comment", comment)

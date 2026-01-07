@@ -382,6 +382,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.cronutils</groupId>
+                <artifactId>cron-utils</artifactId>
+                <version>9.2.1</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.datastax.oss</groupId>
                 <artifactId>java-driver-core</artifactId>
                 <version>${dep.cassandra.version}</version>

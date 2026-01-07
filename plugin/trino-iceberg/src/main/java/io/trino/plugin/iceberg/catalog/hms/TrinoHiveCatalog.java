@@ -694,6 +694,7 @@ public class TrinoHiveCatalog
                                 : currentViewColumn)
                         .collect(toImmutableList()),
                 definition.getGracePeriod(),
+                definition.getRefreshSchedule(),
                 definition.getWhenStaleBehavior(),
                 definition.getComment(),
                 definition.getOwner(),

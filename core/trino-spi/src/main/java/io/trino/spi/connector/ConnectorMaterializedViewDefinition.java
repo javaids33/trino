@@ -39,6 +39,7 @@ public class ConnectorMaterializedViewDefinition
     private final Optional<String> schema;
     private final List<Column> columns;
     private final Optional<Duration> gracePeriod;
+    private final Optional<String> refreshSchedule;
     private final Optional<WhenStaleBehavior> whenStaleBehavior;
     private final Optional<String> comment;
     private final Optional<String> owner;
@@ -51,6 +52,7 @@ public class ConnectorMaterializedViewDefinition
             Optional<String> schema,
             List<Column> columns,
             Optional<Duration> gracePeriod,
+            Optional<String> refreshSchedule,
             Optional<WhenStaleBehavior> whenStaleBehavior,
             Optional<String> comment,
             Optional<String> owner,
@@ -63,6 +65,7 @@ public class ConnectorMaterializedViewDefinition
         this.columns = List.copyOf(requireNonNull(columns, "columns is null"));
         checkArgument(gracePeriod.isEmpty() || !gracePeriod.get().isNegative(), "gracePeriod cannot be negative: %s", gracePeriod);
         this.gracePeriod = gracePeriod;
+        this.refreshSchedule = requireNonNull(refreshSchedule, "refreshSchedule is null");
         this.whenStaleBehavior = requireNonNull(whenStaleBehavior, "whenStaleBehavior is null");
         this.comment = requireNonNull(comment, "comment is null");
         this.owner = requireNonNull(owner, "owner is null");
@@ -106,6 +109,11 @@ public class ConnectorMaterializedViewDefinition
         return gracePeriod;
     }
 
+    public Optional<String> getRefreshSchedule()
+    {
+        return refreshSchedule;
+    }
+
     public Optional<WhenStaleBehavior> getWhenStaleBehavior()
     {
         return whenStaleBehavior;
@@ -136,6 +144,7 @@ public class ConnectorMaterializedViewDefinition
         schema.ifPresent(value -> joiner.add("schema=" + value));
         joiner.add("columns=" + columns);
         gracePeriod.ifPresent(value -> joiner.add("gracePeriod=" + gracePeriod));
+        refreshSchedule.ifPresent(value -> joiner.add("refreshSchedule=" + value));
         whenStaleBehavior.ifPresent(value -> joiner.add("whenStaleBehavior=" + value.name()));
         comment.ifPresent(value -> joiner.add("comment=" + value));
         joiner.add("owner=" + owner);
@@ -159,6 +168,7 @@ public class ConnectorMaterializedViewDefinition
                 Objects.equals(schema, that.schema) &&
                 Objects.equals(columns, that.columns) &&
                 Objects.equals(gracePeriod, that.gracePeriod) &&
+                Objects.equals(refreshSchedule, that.refreshSchedule) &&
                 Objects.equals(whenStaleBehavior, that.whenStaleBehavior) &&
                 Objects.equals(comment, that.comment) &&
                 Objects.equals(owner, that.owner) &&
@@ -168,7 +178,7 @@ public class ConnectorMaterializedViewDefinition
     @Override
     public int hashCode()
     {
-        return Objects.hash(originalSql, storageTable, catalog, schema, columns, gracePeriod, whenStaleBehavior, comment, owner, path);
+        return Objects.hash(originalSql, storageTable, catalog, schema, columns, gracePeriod, refreshSchedule, whenStaleBehavior, comment, owner, path);
     }
 
     public static final class Column

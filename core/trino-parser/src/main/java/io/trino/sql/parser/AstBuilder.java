@@ -614,6 +614,11 @@ class AstBuilder
             gracePeriod = Optional.of((IntervalLiteral) visit(context.interval()));
         }
 
+        Optional<String> refreshSchedule = Optional.empty();
+        if (context.SCHEDULE() != null) {
+            refreshSchedule = Optional.of(visitString(context.string(0)).getValue());
+        }
+
         Optional<WhenStaleBehavior> whenStale = Optional.empty();
         if (context.INLINE() != null) {
             whenStale = Optional.of(WhenStaleBehavior.INLINE);
@@ -624,7 +629,9 @@ class AstBuilder
 
         Optional<String> comment = Optional.empty();
         if (context.COMMENT() != null) {
-            comment = Optional.of(visitString(context.string()).getValue());
+            // Determine which string context to use based on whether SCHEDULE is present
+            int commentStringIndex = context.SCHEDULE() != null ? 1 : 0;
+            comment = Optional.of(visitString(context.string(commentStringIndex)).getValue());
         }
 
         List<Property> properties = ImmutableList.of();
@@ -639,6 +646,7 @@ class AstBuilder
                 context.REPLACE() != null,
                 context.EXISTS() != null,
                 gracePeriod,
+                refreshSchedule,
                 whenStale,
                 properties,
                 comment);

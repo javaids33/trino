@@ -7985,6 +7985,7 @@ public class TestAnalyzer
                 Optional.of("s1"),
                 ImmutableList.of(new ViewColumn("a", BIGINT.getTypeId(), Optional.empty())),
                 Optional.of(Duration.ZERO),
+                Optional.empty(),
                 INLINE,
                 Optional.of("comment"),
                 Identity.ofUser("user"),
@@ -8115,6 +8116,7 @@ public class TestAnalyzer
                         Optional.of("s1"),
                         ImmutableList.of(new ViewColumn("a", BIGINT.getTypeId(), Optional.empty())),
                         Optional.of(Duration.ZERO),
+                        Optional.empty(),
                         INLINE,
                         Optional.empty(),
                         Identity.ofUser("some user"),
@@ -8174,8 +8176,10 @@ public class TestAnalyzer
                 Optional.of("s1"),
                 ImmutableList.of(new ViewColumn("a", BIGINT.getTypeId(), Optional.empty()), new ViewColumn("b", BIGINT.getTypeId(), Optional.empty())),
                 Optional.of(STALE_MV_STALENESS.minusHours(1)), // Minus 1 hour to make MVs not marked as fresh become stale immediately. This doesn’t affect those marked as fresh.
+                Optional.empty(),
                 whenStaleBehavior,
                 Optional.empty(),
+
                 Identity.ofUser("some user"),
                 ImmutableList.of(),
                 // t3 has a, b column and hidden column x
@@ -8206,8 +8210,10 @@ public class TestAnalyzer
                 Optional.of("s1"),
                 ImmutableList.of(new ViewColumn("a", BIGINT.getTypeId(), Optional.empty()), new ViewColumn("b", BIGINT.getTypeId(), Optional.empty())),
                 Optional.of(STALE_MV_STALENESS.minusHours(1)), // Minus 1 hour to make MVs not marked as fresh become stale immediately. This doesn’t affect those marked as fresh.
+                Optional.empty(),
                 whenStaleBehavior,
                 Optional.empty(),
+
                 Identity.ofUser("some user"),
                 ImmutableList.of(),
                 // t3 has a, b column and hidden column x
@@ -8242,6 +8248,7 @@ public class TestAnalyzer
                         Optional.of("s1"),
                         ImmutableList.of(new ViewColumn("a", BIGINT.getTypeId(), Optional.empty())),
                         Optional.empty(),
+                        Optional.empty(),
                         whenStaleBehavior,
                         Optional.empty(),
                         Identity.ofUser("some user"),
@@ -8262,6 +8269,7 @@ public class TestAnalyzer
                         Optional.of("s1"),
                         ImmutableList.of(new ViewColumn("a", BIGINT.getTypeId(), Optional.empty()), new ViewColumn("c", BIGINT.getTypeId(), Optional.empty())),
                         Optional.empty(),
+                        Optional.empty(),
                         whenStaleBehavior,
                         Optional.empty(),
                         Identity.ofUser("some user"),
@@ -8281,6 +8289,7 @@ public class TestAnalyzer
                         Optional.of(TPCH_CATALOG),
                         Optional.of("s1"),
                         ImmutableList.of(new ViewColumn("a", BIGINT.getTypeId(), Optional.empty()), new ViewColumn("b", RowType.anonymousRow(TINYINT).getTypeId(), Optional.empty())),
+                        Optional.empty(),
                         Optional.empty(),
                         whenStaleBehavior,
                         Optional.empty(),

@@ -1484,6 +1484,17 @@ class StatementAnalyzer
                 }
                 analyzeExpression(gracePeriod, Scope.create());
             });
+            node.getRefreshSchedule().ifPresent(schedule -> {
+                try {
+                    com.cronutils.model.CronType cronType = com.cronutils.model.CronType.UNIX;
+                    com.cronutils.model.definition.CronDefinition cronDefinition = com.cronutils.model.definition.CronDefinitionBuilder.instanceDefinitionFor(cronType);
+                    com.cronutils.parser.CronParser parser = new com.cronutils.parser.CronParser(cronDefinition);
+                    parser.parse(schedule);
+                }
+                catch (IllegalArgumentException e) {
+                    throw semanticException(INVALID_ARGUMENTS, node, "Invalid cron expression for REFRESH SCHEDULE: %s", e.getMessage());
+                }
+            });
 
             // analyze the query that creates the view
             StatementAnalyzer analyzer = statementAnalyzerFactory.createStatementAnalyzer(analysis, session, warningCollector, CorrelationSupport.ALLOWED);
