@@ -5895,6 +5895,7 @@ public class TestSqlParser
                         false,
                         Optional.empty(),
                         Optional.empty(),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.empty()));
 
@@ -5938,6 +5939,7 @@ public class TestSqlParser
                         false,
                         Optional.empty(),
                         Optional.empty(),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.of("A simple materialized view")));
 
@@ -5974,6 +5976,7 @@ public class TestSqlParser
                         false,
                         Optional.of(new IntervalLiteral(new NodeLocation(1, 41), "2", Sign.POSITIVE, IntervalField.DAY, Optional.empty())),
                         Optional.empty(),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.empty()));
 
@@ -6008,6 +6011,7 @@ public class TestSqlParser
                                 Optional.empty()),
                         false,
                         false,
+                        Optional.empty(),
                         Optional.empty(),
                         Optional.of(WhenStaleBehavior.FAIL),
                         ImmutableList.of(),
@@ -6044,6 +6048,7 @@ public class TestSqlParser
                                 Optional.empty()),
                         false,
                         false,
+                        Optional.empty(),
                         Optional.empty(),
                         Optional.of(WhenStaleBehavior.INLINE),
                         ImmutableList.of(),
@@ -6091,6 +6096,7 @@ public class TestSqlParser
                                 Optional.empty()),
                         true,
                         false,
+                        Optional.empty(),
                         Optional.empty(),
                         Optional.empty(),
                         ImmutableList.of(new Property(
@@ -6188,6 +6194,7 @@ public class TestSqlParser
                                 Optional.empty()),
                         true,
                         false,
+                        Optional.empty(),
                         Optional.empty(),
                         Optional.empty(),
                         ImmutableList.of(new Property(
