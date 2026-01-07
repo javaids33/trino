@@ -566,6 +566,7 @@ public final class ShowQueriesRewrite
                     false,
                     viewDefinition.get().getGracePeriod()
                             .map(DateTimeUtils::formatDayTimeInterval),
+                    viewDefinition.get().getRefreshSchedule(),
                     Optional.of(toSqlWhenStaleBehavior(viewDefinition.get().getWhenStaleBehavior())),
                     propertyNodes,
                     viewDefinition.get().getComment())).trim();
