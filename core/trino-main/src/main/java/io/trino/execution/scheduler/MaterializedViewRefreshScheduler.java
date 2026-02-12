@@ -33,6 +33,7 @@ import io.trino.security.AccessControl;
 import io.trino.server.SessionContext;
 import io.trino.server.protocol.Slug;
 import io.trino.spi.QueryId;
+import io.trino.spi.connector.MaterializedViewFreshness;
 import io.trino.spi.security.Identity;
 import io.trino.spi.security.SelectedRole;
 import io.trino.spi.session.ResourceEstimates;
@@ -220,6 +221,20 @@ public class MaterializedViewRefreshScheduler
         ZonedDateTime nextFireTime = cron.nextFireTime(lastAttempt);
 
         if (!nextFireTime.isAfter(now)) {
+            // Cron says it's due — check if MV is already fresh.
+            // This handles cross-coordinator and cross-product deduplication:
+            // if another coordinator/product already refreshed, the MV will be FRESH.
+            try {
+                MaterializedViewFreshness freshness = metadata.getMaterializedViewFreshness(session, mvName, false);
+                if (freshness.getFreshness() == MaterializedViewFreshness.Freshness.FRESH) {
+                    log.debug("Materialized view %s is already fresh, skipping refresh", mvName);
+                    return false;
+                }
+            }
+            catch (Exception e) {
+                log.warn(e, "Failed to check freshness for %s, proceeding with refresh", mvName);
+            }
+
             log.info("Materialized view %s is due for refresh (schedule: '%s', next fire: %s)",
                     mvName, refreshSchedule.get(), nextFireTime);
             return true;
