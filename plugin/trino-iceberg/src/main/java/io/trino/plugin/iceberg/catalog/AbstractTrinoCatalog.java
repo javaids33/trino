@@ -467,6 +467,7 @@ public abstract class AbstractTrinoCatalog
                 toSpiMaterializedViewColumns(definition.columns()),
                 definition.gracePeriod(),
                 definition.whenStaleBehavior(),
+                definition.refreshSchedule(),
                 definition.comment(),
                 owner,
                 definition.path());

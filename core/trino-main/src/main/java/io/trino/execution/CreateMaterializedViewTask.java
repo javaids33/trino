@@ -171,6 +171,7 @@ public class CreateMaterializedViewTask
                 columns,
                 gracePeriod,
                 whenStale,
+                statement.getRefreshSchedule(),
                 statement.getComment(),
                 session.getIdentity(),
                 session.getPath().getPath().stream()

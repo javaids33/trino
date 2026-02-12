@@ -1773,6 +1773,39 @@ public interface ConnectorMetadata
     }
 
     /**
+     * Get the refresh schedule for a materialized view.
+     * Returns empty if no schedule is configured.
+     */
+    default Optional<MaterializedViewRefreshSchedule> getMaterializedViewRefreshSchedule(
+            ConnectorSession session,
+            SchemaTableName viewName)
+    {
+        return Optional.empty();
+    }
+
+    /**
+     * Attempt to acquire a distributed refresh lock for the given materialized view.
+     * Returns true if lock was acquired, false if another coordinator already holds it.
+     */
+    default boolean tryAcquireRefreshLock(
+            ConnectorSession session,
+            SchemaTableName viewName,
+            String coordinatorId)
+    {
+        return true;
+    }
+
+    /**
+     * Release the distributed refresh lock for the given materialized view.
+     */
+    default void releaseRefreshLock(
+            ConnectorSession session,
+            SchemaTableName viewName,
+            String coordinatorId)
+    {
+    }
+
+    /**
      * Rename the specified materialized view
      */
     default void renameMaterializedView(ConnectorSession session, SchemaTableName source, SchemaTableName target)

@@ -69,6 +69,9 @@ import io.trino.execution.resourcegroups.InternalResourceGroupManager;
 import io.trino.execution.resourcegroups.LegacyResourceGroupConfigurationManager;
 import io.trino.execution.resourcegroups.ResourceGroupInfoProvider;
 import io.trino.execution.resourcegroups.ResourceGroupManager;
+import io.trino.execution.scheduler.ForScheduledRefresh;
+import io.trino.execution.scheduler.MaterializedViewRefreshConfig;
+import io.trino.execution.scheduler.MaterializedViewRefreshScheduler;
 import io.trino.execution.scheduler.NodeScheduler;
 import io.trino.execution.scheduler.NodeSchedulerConfig;
 import io.trino.execution.scheduler.SplitSchedulerStats;
@@ -395,11 +398,18 @@ public class CoordinatorModule
 
         install(new QueryExecutionFactoryModule());
 
+        // materialized view refresh scheduler
+        configBinder(binder).bindConfig(MaterializedViewRefreshConfig.class);
+        binder.bind(MaterializedViewRefreshScheduler.class).in(Scopes.SINGLETON);
+        binder.bind(ScheduledExecutorService.class).annotatedWith(ForScheduledRefresh.class)
+                .toInstance(newSingleThreadScheduledExecutor(threadsNamed("mv-refresh-scheduler")));
+
         // cleanup
         closingBinder(binder).registerExecutor(Key.get(ExecutorService.class, ForStatementResource.class));
         closingBinder(binder).registerExecutor(Key.get(ScheduledExecutorService.class, ForStatementResource.class));
         closingBinder(binder).registerExecutor(Key.get(ExecutorService.class, ForQueryExecution.class));
         closingBinder(binder).registerExecutor(Key.get(ScheduledExecutorService.class, ForScheduler.class));
+        closingBinder(binder).registerExecutor(Key.get(ScheduledExecutorService.class, ForScheduledRefresh.class));
     }
 
     // working around circular dependency Metadata <-> PlannerContext

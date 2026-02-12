@@ -450,6 +450,7 @@ public class TestSqlFormatter
                         false,
                         Optional.empty(),
                         Optional.empty(),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.empty())))
                 .isEqualTo("CREATE MATERIALIZED VIEW test_mv AS\n" +
@@ -463,6 +464,7 @@ public class TestSqlFormatter
                         simpleQuery(selectList(new AllColumns()), table(QualifiedName.of("test_base"))),
                         false,
                         false,
+                        Optional.empty(),
                         Optional.empty(),
                         Optional.empty(),
                         ImmutableList.of(),
@@ -481,6 +483,7 @@ public class TestSqlFormatter
                         false,
                         Optional.empty(),
                         Optional.of(WhenStaleBehavior.FAIL),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.empty())))
                 .isEqualTo(
