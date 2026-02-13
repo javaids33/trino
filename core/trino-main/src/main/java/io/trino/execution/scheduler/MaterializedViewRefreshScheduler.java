@@ -13,6 +13,7 @@
  */
 package io.trino.execution.scheduler;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.FutureCallback;
@@ -99,6 +100,21 @@ public class MaterializedViewRefreshScheduler
         this.transactionManager = requireNonNull(transactionManager, "transactionManager is null");
         this.accessControl = requireNonNull(accessControl, "accessControl is null");
         this.tracer = requireNonNull(tracer, "tracer is null");
+        this.refreshSemaphore = new Semaphore(config.getMaxConcurrentRefreshes());
+    }
+
+    @VisibleForTesting
+    MaterializedViewRefreshScheduler(Metadata metadata, MaterializedViewRefreshConfig config)
+    {
+        this.metadata = requireNonNull(metadata, "metadata is null");
+        this.config = requireNonNull(config, "config is null");
+        this.executor = null;
+        this.dispatchManager = null;
+        this.sessionPropertyManager = null;
+        this.queryIdGenerator = null;
+        this.transactionManager = null;
+        this.accessControl = null;
+        this.tracer = null;
         this.refreshSemaphore = new Semaphore(config.getMaxConcurrentRefreshes());
     }
 
@@ -199,7 +215,8 @@ public class MaterializedViewRefreshScheduler
         }
     }
 
-    private boolean shouldRefresh(Session session, QualifiedObjectName mvName, ZonedDateTime now)
+    @VisibleForTesting
+    boolean shouldRefresh(Session session, QualifiedObjectName mvName, ZonedDateTime now)
     {
         Optional<MaterializedViewDefinition> mvDef = metadata.getMaterializedView(session, mvName);
         if (mvDef.isEmpty()) {
@@ -227,7 +244,7 @@ public class MaterializedViewRefreshScheduler
             try {
                 MaterializedViewFreshness freshness = metadata.getMaterializedViewFreshness(session, mvName, false);
                 if (freshness.getFreshness() == MaterializedViewFreshness.Freshness.FRESH) {
-                    log.debug("Materialized view %s is already fresh, skipping refresh", mvName);
+                    log.info("Materialized view %s is already fresh, skipping refresh", mvName);
                     return false;
                 }
             }
