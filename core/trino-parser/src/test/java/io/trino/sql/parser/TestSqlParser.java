@@ -5895,6 +5895,7 @@ public class TestSqlParser
                         false,
                         Optional.empty(),
                         Optional.empty(),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.empty()));
 
@@ -5938,6 +5939,7 @@ public class TestSqlParser
                         false,
                         Optional.empty(),
                         Optional.empty(),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.of("A simple materialized view")));
 
@@ -5973,6 +5975,7 @@ public class TestSqlParser
                         false,
                         false,
                         Optional.of(new IntervalLiteral(new NodeLocation(1, 41), "2", Sign.POSITIVE, IntervalField.DAY, Optional.empty())),
+                        Optional.empty(),
                         Optional.empty(),
                         ImmutableList.of(),
                         Optional.empty()));
@@ -6010,6 +6013,7 @@ public class TestSqlParser
                         false,
                         Optional.empty(),
                         Optional.of(WhenStaleBehavior.FAIL),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.empty()));
 
@@ -6046,6 +6050,7 @@ public class TestSqlParser
                         false,
                         Optional.empty(),
                         Optional.of(WhenStaleBehavior.INLINE),
+                        Optional.empty(),
                         ImmutableList.of(),
                         Optional.empty()));
 
@@ -6091,6 +6096,7 @@ public class TestSqlParser
                                 Optional.empty()),
                         true,
                         false,
+                        Optional.empty(),
                         Optional.empty(),
                         Optional.empty(),
                         ImmutableList.of(new Property(
@@ -6190,6 +6196,7 @@ public class TestSqlParser
                         false,
                         Optional.empty(),
                         Optional.empty(),
+                        Optional.empty(),
                         ImmutableList.of(new Property(
                                 new NodeLocation(2, 7),
                                 new Identifier(new NodeLocation(2, 7), "partitioned_by", false),
@@ -6197,6 +6204,80 @@ public class TestSqlParser
                                         new NodeLocation(2, 24),
                                         ImmutableList.of(new StringLiteral(new NodeLocation(2, 31), "dateint"))))),
                         Optional.of("A partitioned materialized view")));
+
+        // REFRESH SCHEDULE
+        assertThat(statement("CREATE MATERIALIZED VIEW a REFRESH SCHEDULE '0 * * * *' AS SELECT * FROM t"))
+                .isEqualTo(new CreateMaterializedView(
+                        new NodeLocation(1, 1),
+                        QualifiedName.of(ImmutableList.of(new Identifier(new NodeLocation(1, 26), "a", false))),
+                        new Query(
+                                new NodeLocation(1, 60),
+                                ImmutableList.of(),
+                                ImmutableList.of(),
+                                Optional.empty(),
+                                new QuerySpecification(
+                                        new NodeLocation(1, 60),
+                                        new Select(
+                                                new NodeLocation(1, 60),
+                                                false,
+                                                ImmutableList.of(new AllColumns(new NodeLocation(1, 67), Optional.empty(), ImmutableList.of()))),
+                                        Optional.of(new Table(
+                                                new NodeLocation(1, 74),
+                                                QualifiedName.of(ImmutableList.of(new Identifier(new NodeLocation(1, 74), "t", false))))),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        ImmutableList.of(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty()),
+                                Optional.empty(),
+                                Optional.empty(),
+                                Optional.empty()),
+                        false,
+                        false,
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.of("0 * * * *"),
+                        ImmutableList.of(),
+                        Optional.empty()));
+
+        // GRACE PERIOD + REFRESH SCHEDULE + COMMENT
+        assertThat(statement("CREATE MATERIALIZED VIEW a GRACE PERIOD INTERVAL '2' HOUR REFRESH SCHEDULE '0 0 * * *' COMMENT 'daily' AS SELECT * FROM t"))
+                .isEqualTo(new CreateMaterializedView(
+                        new NodeLocation(1, 1),
+                        QualifiedName.of(ImmutableList.of(new Identifier(new NodeLocation(1, 26), "a", false))),
+                        new Query(
+                                new NodeLocation(1, 107),
+                                ImmutableList.of(),
+                                ImmutableList.of(),
+                                Optional.empty(),
+                                new QuerySpecification(
+                                        new NodeLocation(1, 107),
+                                        new Select(
+                                                new NodeLocation(1, 107),
+                                                false,
+                                                ImmutableList.of(new AllColumns(new NodeLocation(1, 114), Optional.empty(), ImmutableList.of()))),
+                                        Optional.of(new Table(
+                                                new NodeLocation(1, 121),
+                                                QualifiedName.of(ImmutableList.of(new Identifier(new NodeLocation(1, 121), "t", false))))),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        ImmutableList.of(),
+                                        Optional.empty(),
+                                        Optional.empty(),
+                                        Optional.empty()),
+                                Optional.empty(),
+                                Optional.empty(),
+                                Optional.empty()),
+                        false,
+                        false,
+                        Optional.of(new IntervalLiteral(new NodeLocation(1, 41), "2", Sign.POSITIVE, IntervalField.HOUR, Optional.empty())),
+                        Optional.empty(),
+                        Optional.of("0 0 * * *"),
+                        ImmutableList.of(),
+                        Optional.of("daily")));
     }
 
     @Test

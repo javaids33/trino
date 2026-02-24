@@ -278,6 +278,7 @@ import io.trino.sql.tree.With;
 import io.trino.sql.tree.WithQuery;
 import io.trino.transaction.TransactionManager;
 import io.trino.type.TypeCoercion;
+import io.trino.util.CronExpressionParser;
 
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -1484,6 +1485,16 @@ class StatementAnalyzer
                     throw semanticException(INVALID_GRACE_PERIOD, gracePeriod, "Grace period cannot be negative");
                 }
                 analyzeExpression(gracePeriod, Scope.create());
+            });
+
+            node.getRefreshSchedule().ifPresent(schedule -> {
+                try {
+                    CronExpressionParser.validate(schedule);
+                }
+                catch (IllegalArgumentException e) {
+                    throw semanticException(INVALID_ARGUMENTS, node,
+                            "Invalid REFRESH SCHEDULE cron expression '%s': %s", schedule, e.getMessage());
+                }
             });
 
             // analyze the query that creates the view

@@ -1835,6 +1835,7 @@ public final class MetadataManager
                         .collect(toImmutableList()),
                 view.getGracePeriod(),
                 view.getWhenStaleBehavior().orElse(DEFAULT_WHEN_STALE_BEHAVIOR),
+                view.getRefreshSchedule(),
                 view.getComment(),
                 runAsIdentity,
                 view.getPath(),
